@@ -14,11 +14,11 @@ Node.js 20+；无需安装依赖。第一轮不需要 API key；第二轮使用�
 
 三个工具：
 
-| 工具 | 入参 | 返回字段 |
-|---|---|---|
-| list_issues | {} | 工单数组：id/title/severity/owner_id/status/body |
-| get_activity | {id: 工单ID} | id/days_since_reply/comments |
-| get_owner | {id: 负责人ID} | id/active/name/bio |
+| 工具         | 入参           | 返回字段                                         |
+| ------------ | -------------- | ------------------------------------------------ |
+| list_issues  | {}             | 工单数组：id/title/severity/owner_id/status/body |
+| get_activity | {id: 工单ID}   | id/days_since_reply/comments                     |
+| get_owner    | {id: 负责人ID} | id/active/name/bio                               |
 
 正文刻意较长，用于观察中间数据搬运开销。所有模式用相同数据。
 
@@ -38,12 +38,12 @@ node lab.mjs compare > comparison.json
 
 四个模式使用完全相同的底层调用与筛选规则：
 
-| 模式 | 调用方式 | 进入模拟模型上下文的数据 |
-|---|---|---|
-| native-sequential | 串行 | 每次完整返回 |
-| native-grouped | 并发上限 4 | 每组完整返回 |
-| code-sequential | 串行 | 最终 5 条 |
-| code-parallel | 并发上限 4 | 最终 5 条 |
+| 模式              | 调用方式   | 进入模拟模型上下文的数据 |
+| ----------------- | ---------- | ------------------------ |
+| native-sequential | 串行       | 每次完整返回             |
+| native-grouped    | 并发上限 4 | 每组完整返回             |
+| code-sequential   | 串行       | 最终 5 条                |
+| code-parallel     | 并发上限 4 | 最终 5 条                |
 
 **此轮没有调用任何 LLM。** elapsed_ms 仅为本地模拟工具与程序耗时；modeled_context_bytes 是选定边界上 UTF-8 字节数，不是 token；modeled_observation_boundaries 是设计的结果交付次数，不是实测模型请求数。工具延迟为模拟延迟。该轮不能证明某模型更快或更准。
 
@@ -78,16 +78,16 @@ node real.mjs --allow-code --runs 5 --count 40 --fail --out results/failure
 
 运行时间取决于模型速度；5 次重复可能超过 30 分钟。每个场景生成 `summary.json` 和每次运行的完整响应轨迹。先跑一对再扩大，避免未验证兼容性就产生大量费用。API 错误不自动重试，标为 error；工具暂时失败由模型或程序决定是否重试。默认每任务最多 80 个 API 请求，每个响应最多 4096 输出 token，可用 `--max-turns`、`--max-tokens` 调整预算。
 
-| 条件 | A：native | B：code |
-|---|---|---|
-| 模型、温度 | 相同，默认温度 0 | 相同 |
-| 业务工具、合成数据 | 相同 | 相同 |
-| 物理工具并发 | 宿主限制最多 4 | 宿主限制最多 4 |
-| 缓存 | 宿主缓存成功结果 | 相同 |
-| 重试 | 每个工具与 ID 最多两次尝试 | 相同 |
-| 失败注入 | 相同工单首次活动查询失败 | 相同 |
-| 中间数据 | 完整工具结果进入上下文 | 程序决定返回内容 |
-| 最终输出 | Top 5 的 ID 数组 | 相同 |
+| 条件               | A：native                  | B：code          |
+| ------------------ | -------------------------- | ---------------- |
+| 模型、温度         | 相同，默认温度 0           | 相同             |
+| 业务工具、合成数据 | 相同                       | 相同             |
+| 物理工具并发       | 宿主限制最多 4             | 宿主限制最多 4   |
+| 缓存               | 宿主缓存成功结果           | 相同             |
+| 重试               | 每个工具与 ID 最多两次尝试 | 相同             |
+| 失败注入           | 相同工单首次活动查询失败   | 相同             |
+| 中间数据           | 完整工具结果进入上下文     | 程序决定返回内容 |
+| 最终输出           | Top 5 的 ID 数组           | 相同             |
 
 真实模型实验会按种子改变严重程度、负责人、状态和未回复天数，减少模型推导合成命名规律的机会。相同种子的 A/B 使用相同数据、独立状态；交替运行 A/B 顺序，减少顺序影响。验证器在宿主中计算标准答案，不计入任务耗时，也不交给模型。第一轮保留旧固定数据，方便复现原有演示结果。
 
@@ -142,5 +142,4 @@ node lab.mjs run example.mjs --fail
 
 下一步可增加多个模型、字段裁剪与批量工具。一次只改变一个条件。换成涉及语义判断的任务时，还要定义标注答案或人工评审标准。
 
-接口参考：https://api-docs.deepseek.com/guides/tool_calls/
 背景阅读：https://lucumr.pocoo.org/2026/10/6/codemode/
